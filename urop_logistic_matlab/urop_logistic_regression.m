@@ -55,9 +55,10 @@ end
 
 pred = predictOneVsAll(all_theta, x);
 predtest = predictOneVsAll(all_theta, testx);
+predtestApprox= predictOneVsAllApprox(all_theta, testx);
 fprintf('\nTraining Set Accuracy: %f\n', mean(double(pred == y)) * 100);
 fprintf('\nTest Set Accuracy: %f\n', mean(double(predtest == testy)) * 100);
-
+fprintf('\nTest Set Accuracy: %f\n', mean(double(predtestApprox == testy)) * 100);
 % X = [ones(100, 1) testx];
 % prediction=X*all_theta';
 % sigmoid(prediction)

@@ -14,8 +14,18 @@ for i=0:15
 fprintf('innerproduct i%d(\n\t.xarray (xarray),\n\t.hprime (hprimearray[%d])\n\t);\n',i,i);
 end
 
+for i=0:15
+fprintf('wire abs%d;\n',i);
+end
+for i=0:15
+fprintf('assign abs%d=(hprimearray[%d]<0)?(-hprimearray[%d]):hprimearray[%d];\n',i,i,i,i);
+end
 for i=0:80
 fprintf('assign r%d=xarray[%d]*THETA%d;\n',i,i,i);
 end
-
-
+for i=2:32
+fprintf('else if(abs0<step*%d) begin assign harray[0]=(hprimearray[0]<0)?(-(abs0*a%d+b%d)):(abs0*a%d+b%d);end \n',i,i,i,i,i);
+end
+for i=1:32
+fprintf('parameter a%d=%d; parameter b%d=%d;\n',i,coeffsfixpoint(i,1),i,coeffsfixpoint(i,2));
+end

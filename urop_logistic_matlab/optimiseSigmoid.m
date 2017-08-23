@@ -25,5 +25,6 @@ approxy=zeros(1,30000);
 for i=1:30000
 approxy(i)=axis32(i)*coeffs(axis32index(i),1)+coeffs(axis32index(i),2);
 end
+coeffsfixpoint=round(coeffs.*(2^16));
 
 plot(axis32,approxy)
