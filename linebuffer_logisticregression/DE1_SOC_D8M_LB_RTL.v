@@ -129,10 +129,11 @@ reg [31:0] xarray[0:40];
 wire  [31:0] hprimearray [0:7];
 wire  [31:0] harray[0:7];
 wire [2:0] outputangle;
+
 always @ (posedge VGA_CLK) begin
 if (ydiv8==59)begin
 	tempxarray[xdiv8]<={16'b0,countdata[15:0]};
-	xarray[xdiv16]<=tempxarray[xdiv16*2]+tempxarray[xdiv16*2-1];
+	xarray[xdiv16]<=tempxarray[xdiv16*2]*2+tempxarray[xdiv16*2-1]*2;
 end
 end
 
@@ -150,10 +151,19 @@ sigmoid16 s1(
 predict p1(
 	.harray(harray),
 	.y(outputangle),
-	.clock(VGA_CLK)
+	.clock(VGA_HS)
 	
 );
-assign {GPIO[11],GPIO[13],GPIO[15],GPIO[17]}={~outputangle[2],outputangle[1:0],1'b0};
+
+assign {GPIO[11],GPIO[13],GPIO[15]}=(SW[9])?SW[2:0]:
+						 (outputangle== 0)?7: //0
+                   (outputangle == 1)?6: //1
+				   	 (outputangle == 2)?5: //2
+                   (outputangle == 3)?4: //3
+				   	 (outputangle == 4)?3: //4        
+				    	 (outputangle == 5)?2: //5
+					    (outputangle == 6)?1: //6{outputangle[2],outputangle[1:0],1'b0};
+												  0;
 
 assign HEX4 =  (outputangle == 4'd0)?7'h40: //0
                    (outputangle == 4'd1)?7'h79: //1

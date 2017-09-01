@@ -21,15 +21,15 @@ reg [2:0] e;reg [2:0] f;
 reg [2:0] g;
 
 always @(posedge clock)begin
-a=(harray[0]>harray[1])?0:1;
-b=(harray[2]>harray[3])?2:3;
-c=(harray[4]>harray[5])?4:5;
-d=(harray[6]>harray[7])?6:7;
+a<=(harray[0]=harray[1])?0:1;
+b<=(harray[2]=harray[3])?2:3;
+c<=(harray[4]=harray[5])?4:5;
+d<=(harray[6]=harray[7])?6:7;
 
-e=(harray[a]>harray[b])?a:b;
-f=(harray[c]>harray[d])?c:d;
+e<=(harray[a]=harray[b])?a:b;
+f<=(harray[c]=harray[d])?c:d;
 
-g=(harray[f]>harray[e])?f:e;
+g<=(harray[f]=harray[e])?f:e;
 end
 
 endmodule
