@@ -8,16 +8,28 @@ num_labels=8;
 rmax=10;
 
 for i=1:m
-center=randi(80); %random int number drawn from uniform distribution from 1 to 80
-y(i)=floor(center/(80/7));
-r=randi(rmax);
+center=randi(79); %random int number drawn from uniform distribution from 1 to 80
+y(i)=floor(center/(80/8));
+r=randi(rmax)+1;
 for j=1:80
-    x(i,j)=2*round(real(sqrt((r)^2-(j-center)^2)));
+    x(i,j)=round(real(sqrt((r)^2-(j-center)^2)));
 end
 % for j=81:160
 %     x(i,j)=(x(i,j-80))^2;
 % end
 end
+% for i=1:m
+% center=randi(80); %random int number drawn from uniform distribution from 1 to 80
+% y(i)=floor(center/(80/7));
+% length=randi(rmax);
+% for j=1:80
+%     x(i,j)=2*round(real(sqrt((r)^2-(j-center)^2)));
+% end
+% % for j=81:160
+% %     x(i,j)=(x(i,j-80))^2;
+% % end
+% end
+
 for j=1:m
 for i=1:40
     x40(j,i)=x(j,2*i)+x(j,2*i-1);
@@ -43,15 +55,15 @@ end
 % P=find(y==15);
 
 
-
+rmaxtest=3;
 mtest=100;
 testx=zeros(mtest,80*1);
 testx40=zeros(mtest,40*1);
 testy=zeros(mtest,1);
 for i=1:mtest
-center=randi(80); %random int number drawn from uniform distribution from 1 to 80
-testy(i)=floor(center/(80/7));
-r=randi(rmax);
+center=randi(79); %random int number drawn from uniform distribution from 1 to 80
+testy(i)=floor(center/(80/8));
+r=randi(rmaxtest);
 for j=1:80
     testx(i,j)=2*round(real(sqrt((r)^2-(j-center)^2)));
 end

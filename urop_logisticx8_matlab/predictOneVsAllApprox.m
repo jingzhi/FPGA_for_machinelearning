@@ -34,7 +34,7 @@ prediction=approxSigmoid8(X*all_theta');
 
 [val,p]=max(prediction,[],2);
 
-
+p=p-1;
 
 
 % =========================================================================
