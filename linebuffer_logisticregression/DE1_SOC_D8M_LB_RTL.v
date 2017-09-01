@@ -64,7 +64,9 @@ module DE1_SOC_D8M_LB_RTL(
 	input 		          		MIPI_PIXEL_HS,
 	input 		          		MIPI_PIXEL_VS,
 	output		          		MIPI_REFCLK,
-	output		          		MIPI_RESET_n
+	output		          		MIPI_RESET_n,
+	/////////////////GPIO_0//////////
+	output				[35:0]         GPIO
 );
 //=======================================================
 //  REG/WIRE declarations
@@ -93,8 +95,8 @@ wire        D8M_CK_HZ2;
 wire        D8M_CK_HZ3;
 
 //---------x,y---------
-
-wire		[7:0]	xdiv8;	
+wire		[7:0]	xdiv8;
+wire		[7:0]	xdiv16;	
 wire		[7:0]	ydiv8;
 wire		[12:0]	pixel_contdiv8;
 wire		[10:0]	x;	
@@ -107,7 +109,7 @@ wire		[10:0]	y;
 //------HEX OFF --
 assign  HEX2 = 7'h7F;
 assign  HEX3 = 7'h7F;
-assign  HEX4 = 7'h7F;
+//assign  HEX4 = 7'h7F;
 assign  HEX5 = 7'h7F;
 
 //------ MIPI BRIGE & CAMERA RESET  --
@@ -122,31 +124,53 @@ assign CAMERA_I2C_SCL = ( I2C_RELEASE  )?  CAMERA_I2C_SCL_AF  : CAMERA_I2C_SCL_M
 
 //------logistic regression  implementation-----
 wire [31:0] countdata;
-reg [31:0] xarray[0:80];
-wire[31:0] hprimearray [0:15];
-wire[31:0] harray[0:15];
-wire [3:0] outputangle;
+reg [31:0] tempxarray[0:80];
+reg [31:0] xarray[0:40];
+wire  [31:0] hprimearray [0:7];
+wire  [31:0] harray[0:7];
+wire [2:0] outputangle;
 always @ (posedge VGA_CLK) begin
 if (ydiv8==59)begin
-	xarray[xdiv8]<={countdata[15:0],16'b0};
+	tempxarray[xdiv8]<={16'b0,countdata[15:0]};
+	xarray[xdiv16]<=tempxarray[xdiv16*2]+tempxarray[xdiv16*2-1];
 end
 end
 
 
 hprime h1(
 	.xarray(xarray),
-	.hprimearray(hprimearray)
+	.hprimearray(hprimearray),
+	.clock(VGA_VS)
 );
 
-sigmoid s1(
+sigmoid16 s1(
 	.hprimearray(hprimearray),
 	.harray(harray)
 );
 predict p1(
 	.harray(harray),
-	.y(outputangle)
+	.y(outputangle),
+	.clock(VGA_CLK)
 	
 );
+assign {GPIO[11],GPIO[13],GPIO[15],GPIO[17]}={~outputangle[2],outputangle[1:0],1'b0};
+
+assign HEX4 =  (outputangle == 4'd0)?7'h40: //0
+                   (outputangle == 4'd1)?7'h79: //1
+				   	 (outputangle == 4'd2)?7'h24: //2
+                   (outputangle == 4'd3)?7'h30: //3
+				   	 (outputangle == 4'd4)?7'h19: //4        
+				    	 (outputangle == 4'd5)?7'h12: //5
+					    (outputangle == 4'd6)?7'h02: //6
+														7'h78; //7
+//					    (outputangle == 4'd8)?7'h00: //8
+//                   (x8level == 4'd9)?7'h10: //9
+//						 (x8level == 4'd10)?7'h08: //10
+//						 (x8level == 4'd11)?7'h03: //11
+//						 (x8level == 4'd12)?7'h46: //12
+//						 (x8level == 4'd13)?7'h21: //13
+//						 (x8level == 4'd14)?7'h06: //14
+//												  7'h0e; //15
 //--------VGA Controller  --
    
 VGA_Controller_trig	u1	(	
@@ -170,11 +194,13 @@ VGA_Controller_trig	u1	(
 	       .V_Cont_       (V_Cont),
 			 //.indexdata		(indexdata[31:0]),
 			 .countdata		(countdata[31:0]),
-			 .xdiv8(xdiv8),	
+			 .xdiv8(xdiv8),
+			 .xdiv16(xdiv16), 
 			 .ydiv8(ydiv8),
 			 .pixel_contdiv8(pixel_contdiv8),
 			 .x(x),
-			 .y(y)
+			 .y(y),
+			 .outputangle(outputangle)
 );
 	
 //------ MIPI BRIGE & CAMERA SETTING  --  
@@ -275,7 +301,10 @@ CLOCKMEM  ck2 ( .CLK(MIPI_REFCLK    ),.CLK_FREQ  (20000000  ),.CK_1HZ (D8M_CK_HZ
 CLOCKMEM  ck3 ( .CLK(MIPI_PIXEL_CLK ),.CLK_FREQ  (25000000 ),.CK_1HZ (D8M_CK_HZ3  ));
 
 //--LED STATUS-----
-assign LEDR[9:0] = { D8M_CK_HZ ,D8M_CK_HZ2,D8M_CK_HZ3 ,5'h0,CAMERA_MIPI_RELAESE ,MIPI_BRIDGE_RELEASE  } ; 
+wire  [2:0] xlevel8;
+assign xlevel8=x/80;
+assign LEDR[9:0] = {2'b0,xlevel8[2:0],2'b0,outputangle[2:0]} ;
+//assign LEDR[9:0] = { D8M_CK_HZ ,D8M_CK_HZ2,D8M_CK_HZ3,xarray[xdiv8] [20:16],CAMERA_MIPI_RELAESE ,MIPI_BRIDGE_RELEASE  } ; 
 
 endmodule
 
